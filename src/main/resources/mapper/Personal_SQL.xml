@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.healthcare.personal.mapper.PersonalMapper">
+	<parameterMap id="surveyVO" type="com.study.healthcare.vo.SurveyVO" />
+	<parameterMap id="surveyNewVO" type="com.study.healthcare.vo.SurveyNewVO" />
+	<parameterMap id="botanyListVO" type="com.study.healthcare.vo.BotanyListVO" />
+	<parameterMap id="responseVO" type="com.study.healthcare.vo.ResponseVO" />
+
+	<!-- 사용자의 설문 답변을 DB에 Insert -->
+	<insert id="surveyAnswer" parameterMap="surveyNewVO" useGeneratedKeys="true" keyProperty="regNumAnswer">
+		INSERT INTO WZ_SURVEY_NEW(
+									REG_ID,
+									SENTIMENT_ONE,
+									SENTIMENT_TWO,
+									EFFECT,
+									SHAPE,
+									LEAF_COLOR,
+									CL_CODE,
+									LIGHT,
+									WATER,
+									DIFFICULTY,
+									RECOMMEND,
+									REG_DATE,
+									AGE,
+									GENDER
+									)
+		VALUES(NULL, #{sentimentOne}, #{sentimentTwo}, #{effect}, #{shape}, #{leafColor}, #{clCode}, #{light}, #{water}, #{difficulty}, NULL, (select datetime('now','localtime')), #{age}, #{gender})
+    </insert>
+
+	<!-- 추천식물 문자열 조회 -->
+	<select id="getRecommendStr" parameterMap="surveyNewVO" resultType="surveyNewVO">
+		SELECT RECOMMEND FROM WZ_SURVEY_NEW WHERE REG_NUM_ANSWER=#{regNumAnswer}
+	</select>
+
+	<!-- 추천식물 문자열에 포함된 식물을 검색 -->
+	<select id="surveyResult" parameterMap="botanyListVO" resultType="botanyListVO">
+		SELECT * FROM(
+			SELECT
+					ID,BOTANY_NM,PLANT_ENG_NM,PLANT_KOR_NM,
+					CASE WHEN CIRCULATION_NM IS NOT NULL THEN CIRCULATION_NM ELSE '' END AS CIRCULATION_NM,
+					FMLCODENM,
+					PLACE_ORIGIN_INFP,
+					SMELLCODE,
+					TOXICITYCODE,
+					MANAGELEVELCODE,
+					GRWTVECODE,
+					GRWHTPCODE,WINTERLWETTPCODE,
+					HDCODE,
+					FRTLZRINFO,
+					SOIL_ACID,
+					SOIL_SHP,
+					SOILINFO,
+					case when (
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleSprngCode
+						and use_yn = 'Y'
+					) is not null then
+					(
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleSprngCode
+						and use_yn = 'Y'
+					) else null end as spring,
+
+					case when (
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleSummerCode
+						and use_yn = 'Y'
+					) is not null then
+					(
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleSummerCode
+						and use_yn = 'Y'
+					) else null end as summer,
+
+					case when (
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleAutumnCode
+						and use_yn = 'Y'
+					) is not null then
+					(
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleAutumnCode
+						and use_yn = 'Y'
+					) else null end as autumn,
+
+					case when (
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleWinterCode
+						and use_yn = 'Y'
+					) is not null then
+					(
+						select
+						code_nm
+						from wz_comm_code_list
+						where code_se = 'PDG'
+						and code = watercycleWinterCode
+						and use_yn = 'Y'
+					) else null end as winter,
+-- 					CASE WHEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLESPRNGCODE) IS NOT NULL THEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLESPRNGCODE) ELSE NULL END AS SPRING,
+-- 					CASE WHEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLESUMMERCODE) IS NOT NULL THEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLESUMMERCODE) ELSE NULL END AS SUMMER,
+-- 					CASE WHEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLEAUTUMNCODE) IS NOT NULL THEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLEAUTUMNCODE) ELSE NULL END AS AUTUMN,
+-- 					CASE WHEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLEWINTERCODE) IS NOT NULL THEN HCFP.FN_GET_CODE_NM('PDG', WATERCYCLEWINTERCODE) ELSE NULL END AS WINTER,
+					MANAGEDEMANDDOCODE,CLCODENM,GRWHSTLECODENM,
+					POSTNGPLACECODE,
+					DLTHTSCODENM,
+					FORMALDEHYDE_REMOVAL,
+					TOLUENE_REMOVAL,
+					XYLENE_REMOVAL,
+					CARBON_MONOXIDE_REMOVAL,
+					CO2_REDUCTION,
+					NEGATIVE_ION_GENERATION,
+					RELATIVE_HUMIDITY_INCREASE,
+					LIMONIN_CONTENT,
+					RECOMMENDED_PLACE,
+					PRICE_POT_B,
+					PRICE_POT_M,
+					PRICE_POT_S,
+					PRICE_FLOWERPOT_B,
+					PRICE_FLOWERPOT_M,
+					PRICE_FLOWERPOT_S,
+					COORD_X,
+					COORD_Y,
+					/*FORMAT(PRICE,0) AS PRICE*/
+					PRICE
+			FROM WZ_BOTANY_LIST
+			WHERE ID IN
+			<foreach collection="IntegerIdList" item="v" open="(" close=")" separator=",">
+				#{v}
+			</foreach>
+			)LIST
+			limit #{pagePerRow, jdbcType=INTEGER} * (#{currentPage, jdbcType=INTEGER} - 1), #{pagePerRow, jdbcType=INTEGER}
+<!--			<![CDATA[-->
+<!--				WHERE-->
+<!--					RNUM <= #{pagePerRow, jdbcType=INTEGER} * #{currentPage, jdbcType=INTEGER}-->
+<!--				AND-->
+<!--					RNUM > (#{pagePerRow, jdbcType=INTEGER} * (#{currentPage, jdbcType=INTEGER} - 1) )-->
+<!--			]]>-->
+	</select>
+
+	<!-- 반환된 추천식물의 개수 -->
+	<select id="surveyResultCnt" parameterType="botanyListVO" resultType="Integer">
+		SELECT COUNT(1)
+		FROM WZ_BOTANY_LIST
+		WHERE ID IN
+		<foreach collection="IntegerIdList" item="v" open="(" close=")" separator=",">
+			#{v}
+		</foreach>
+	</select>
+
+	<!-- 특정 ID의 상세조회 -->
+	<select id="getDetail" parameterType="botanyListVO" resultType="botanyListVO">
+		SELECT
+			ID,BOTANY_NM,PLANT_ENG_NM,PLANT_KOR_NM,
+			CASE WHEN CIRCULATION_NM IS NOT NULL THEN CIRCULATION_NM ELSE '' END AS CIRCULATION_NM,
+			FMLCODENM,PLACE_ORIGIN_INFP,
+			SMELLCODE,TOXICITYCODE,MANAGELEVELCODE,GRWTVECODE,GRWHTPCODE,WINTERLWETTPCODE,
+			HDCODE,FRTLZRINFO,SOIL_ACID,SOIL_SHP,SOILINFO,
+
+			case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) else null end as spring,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) else null end as summer,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) else null end as autumn,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) else null end as winter,
+-- 			CASE WHEN FN_GET_CODE_NM('PDG', WATERCYCLESPRNGCODE) IS NOT NULL THEN FN_GET_CODE_NM('PDG', WATERCYCLESPRNGCODE) ELSE NULL END AS SPRING,
+-- 			CASE WHEN FN_GET_CODE_NM('PDG', WATERCYCLESUMMERCODE) IS NOT NULL THEN FN_GET_CODE_NM('PDG', WATERCYCLESUMMERCODE) ELSE NULL END AS SUMMER,
+-- 			CASE WHEN FN_GET_CODE_NM('PDG', WATERCYCLEAUTUMNCODE) IS NOT NULL THEN FN_GET_CODE_NM('PDG', WATERCYCLEAUTUMNCODE) ELSE NULL END AS AUTUMN,
+-- 			CASE WHEN FN_GET_CODE_NM('PDG', WATERCYCLEWINTERCODE) IS NOT NULL THEN FN_GET_CODE_NM('PDG', WATERCYCLEWINTERCODE) ELSE NULL END AS WINTER,
+			MANAGEDEMANDDOCODE,CLCODENM,GRWHSTLECODENM,
+			POSTNGPLACECODE,DLTHTSCODENM,FORMALDEHYDE_REMOVAL,TOLUENE_REMOVAL,XYLENE_REMOVAL,
+			CARBON_MONOXIDE_REMOVAL,CO2_REDUCTION,NEGATIVE_ION_GENERATION,RELATIVE_HUMIDITY_INCREASE,
+			LIMONIN_CONTENT,RECOMMENDED_PLACE,PRICE_POT_B,PRICE_POT_M,PRICE_POT_S,PRICE_FLOWERPOT_B,
+			PRICE_FLOWERPOT_M,PRICE_FLOWERPOT_S,COORD_X,COORD_Y,FORMAT(PRICE,0) AS PRICE
+		FROM WZ_BOTANY_LIST
+		WHERE ID = #{id}
+	</select>
+
+	<!-- 특정 ID의 유사식물 -->
+	<select id="getSimilarList" parameterType="botanyListVO" resultType="botanyListVO">
+		SELECT
+			*
+			FROM
+			(
+				SELECT
+					A.*,
+					CASE WHEN A.ID = B.ID THEN 0
+					ELSE
+-- 						SQRT(POW((COORD_X - TARGET_X),2)+POW((COORD_Y - TARGET_Y),2))+1
+						sqrt(((coord_x - target_x)*(coord_x - target_x)+(coord_y - target_y)*(coord_y - target_y))) + 1
+					END DISTANCE
+				FROM WZ_BOTANY_LIST A
+				LEFT OUTER JOIN
+				(
+					SELECT
+						ID,
+						COORD_X AS TARGET_X,
+						COORD_Y AS TARGET_Y
+					FROM HCFP.BOTANY_LIST
+					WHERE ID = #{id}
+				) B
+				ON 1=1
+			) RES
+			ORDER BY DISTANCE
+			LIMIT 8
+	</select>
+	<select id="surveyCount" resultType="int">
+		SELECT COUNT(*) FROM WZ_SURVEY_NEW;
+	</select>
+
+	<select id="getSurveyList" resultType="surveyQuestionVO">
+		SELECT * FROM WZ_SURVEY_QUESTION;
+	</select>
+
+	<select id="getSurveySubList" resultType="surveySubQuestionVO">
+		SELECT * FROM WZ_SURVEY_SUB_QUESTION;
+	</select>
+
+	<!-- 사용자의 설문 답변을 DB에 Insert -->
+	<insert id="responseAnswer" parameterMap="responseVO" useGeneratedKeys="true" keyProperty="regNumAnswer">
+		INSERT INTO WZ_RESPONSE_SURVEY(
+									GENDER,
+									AGE,
+									REG_DATE
+									)
+		VALUES(#{gender}, #{age}, (select datetime('now','localtime')))
+    </insert>
+
+	<!-- 사용자의 설문 답변을 DB에 Insert -->
+	<insert id="satisfiedAnswer" parameterType="HashMap" useGeneratedKeys="true" keyProperty="regNumAnswer">
+		UPDATE WZ_SURVEY_NEW SET SATISFIED = #{satisfied} WHERE REG_NUM_ANSWER = #{regNumAnswer}
+    </insert>
+</mapper>

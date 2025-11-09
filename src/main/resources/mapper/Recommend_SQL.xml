@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.healthcare.recommend.mapper.RecommendMapper">
+	<parameterMap id="botanyListVO" type="com.study.healthcare.vo.BotanyListVO" />
+
+	<select id="searchCnt" parameterMap="botanyListVO" resultType="Integer">
+		SELECT 	
+			count(1)
+		FROM WZ_BOTANY_LIST
+		WHERE
+			1 = 1
+		<if test="grwhstleCodeNm != null and grwhstleCodeNm != ''.toString()">
+			AND
+				grwhstleCodeNm like '%' || #{grwhstleCodeNm} || '%'
+		</if>
+		<if test="managelevelCode != null and managelevelCode != ''.toString()">
+			AND
+				managelevelcode = #{managelevelCode}
+		</if>
+		<if test="smellCode != null and smellCode != ''.toString()">
+			AND
+				smellcode like '%' || #{smellCode} || '%'
+		</if>
+		<if test="recommendedPlace != null and recommendedPlace != ''.toString()">
+			AND
+				recommended_place like '%' || #{recommendedPlace} || '%'
+		</if>
+		<if test="plantType != null and plantType != ''.toString()" >
+			AND case when clcodenm like '%잎&amp;꽃%' then clcodenm || ',잎보기식물,꽃보기식물' else clCodeNM end like '%' || #{plantType} || '%'
+		</if>
+		<if test="formaldehydeRemoval != null and formaldehydeRemoval != ''.toString()">
+			AND
+				formaldehyde_removal is not null
+		</if>
+		<if test="tolueneRemoval != null and tolueneRemoval != ''.toString()">
+			AND
+				toluene_removal is not null
+		</if>
+		<if test="xyleneRemoval != null and xyleneRemoval != ''.toString()">
+			AND
+				xylene_removal is not null
+		</if>
+		<if test="carbonMonoxideRemoval != null and carbonMonoxideRemoval != ''.toString()">
+			AND
+				Carbon_monoxide_removal is not null
+		</if>
+	</select>
+	
+	<select id="search" parameterMap="botanyListVO" resultType="camelMap">
+		SELECT * FROM (
+			SELECT
+				id,botany_nm,plant_eng_nm,plant_kor_nm,
+				case when circulation_nm is not null then circulation_nm else '' end as circulation_nm,
+				fmlCodeNm,place_origin_infp,
+				smellCode,toxicityCode,managelevelCode,grwtveCode,grwhTpCode,winterLwetTpCode,
+				hdCode,frtlzrInfo,soil_acid,soil_shp,soilInfo,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) else null end as spring,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) else null end as summer,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) else null end as autumn,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) else null end as winter,
+-- 				case when fn_get_code_nm('PDG', watercycleSprngCode) is not null then fn_get_code_nm('PDG', watercycleSprngCode) else null end as spring,
+-- 				case when fn_get_code_nm('PDG', watercycleSummerCode) is not null then fn_get_code_nm('PDG', watercycleSummerCode) else null end as summer,
+-- 				case when fn_get_code_nm('PDG', watercycleAutumnCode) is not null then fn_get_code_nm('PDG', watercycleAutumnCode) else null end as autumn,
+-- 				case when fn_get_code_nm('PDG', watercycleWinterCode) is not null then fn_get_code_nm('PDG', watercycleWinterCode) else null end as winter,
+				managedemanddoCode,clCodeNM,grwhstleCodeNm,
+				postngplaceCode,dlthtsCodeNm,Formaldehyde_Removal,toluene_removal,Xylene_Removal,
+				Carbon_monoxide_removal,CO2_reduction,Negative_ion_generation,Relative_Humidity_Increase,
+				Limonin_content,Recommended_place,price_pot_b,price_pot_m,price_pot_s,price_flowerpot_b,
+				price_flowerpot_m,price_flowerpot_s,coord_x,coord_y, price,color,brightness,temperature,particulateRemovalPlant,gasRemovalPlant
+			FROM WZ_BOTANY_LIST
+			WHERE
+				1 = 1
+			<if test="grwhstleCodeNm != null and grwhstleCodeNm != ''.toString()">
+				AND
+					grwhstleCodeNm like '%' || #{grwhstleCodeNm} || '%'
+			</if>
+			<if test="managelevelCode != null and managelevelCode != ''.toString()">
+				AND
+					managelevelcode = #{managelevelCode}
+			</if>
+			<if test="smellCode != null and smellCode != ''.toString()">
+				AND
+					smellcode like '%' || #{smellCode} || '%'
+			</if>
+			<if test="recommendedPlace != null and recommendedPlace != ''.toString()">
+				AND
+					recommended_place like '%' || #{recommendedPlace} || '%'
+			</if>
+			<if test="plantType != null and plantType != ''.toString()" >
+				AND case when clcodenm like '%잎&amp;꽃%' then clcodenm || ',잎보기식물,꽃보기식물' else clCodeNM end like '%' || #{plantType} || '%'
+			</if>
+			<if test="formaldehydeRemoval != null and formaldehydeRemoval != ''.toString()">
+				AND
+					formaldehyde_removal is not null
+			</if>
+			<if test="tolueneRemoval != null and tolueneRemoval != ''.toString()">
+				AND
+					toluene_removal is not null
+			</if>
+			<if test="xyleneRemoval != null and xyleneRemoval != ''.toString()">
+				AND
+					xylene_removal is not null
+			</if>
+			<if test="carbonMonoxideRemoval != null and carbonMonoxideRemoval != ''.toString()">
+				AND
+					Carbon_monoxide_removal is not null
+			</if>
+			) list
+
+			limit #{pagePerRow, jdbcType=INTEGER} * (#{currentPage, jdbcType=INTEGER} - 1), #{pagePerRow, jdbcType=INTEGER}
+<!--		<![CDATA[-->
+<!--			WHERE-->
+<!--				RNUM <= #{pagePerRow, jdbcType=INTEGER} * #{currentPage, jdbcType=INTEGER}-->
+<!--			AND-->
+<!--				RNUM > (#{pagePerRow, jdbcType=INTEGER} * (#{currentPage, jdbcType=INTEGER} - 1) )-->
+
+<!--			limit #{pagePerRow, jdbcType=INTEGER} * #{currentPage, jdbcType=INTEGER}, #{pagePerRow, jdbcType=INTEGER}-->
+<!--		]]>	-->
+	</select>
+
+	<select id="detailSearch" parameterMap="botanyListVO" resultType="camelMap">
+		SELECT 
+			id,botany_nm,plant_eng_nm,plant_kor_nm,
+			case when circulation_nm is not null then circulation_nm else '' end as circulation_nm,
+			fmlCodeNm,place_origin_infp,
+			smellCode,toxicityCode,managelevelCode,grwtveCode,grwhTpCode,winterLwetTpCode,
+			hdCode,frtlzrInfo,soil_acid,soil_shp,soilInfo,lighttdemanddoCodeNm,Recommended_place,
+			particulateRemovalPlant, gasRemovalPlant,ecologyCode,growthHginfo,
+			case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSprngCode
+					and use_yn = 'Y'
+				) else null end as spring,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleSummerCode
+					and use_yn = 'Y'
+				) else null end as summer,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleAutumnCode
+					and use_yn = 'Y'
+				) else null end as autumn,
+
+				case when (
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) is not null then
+				(
+					select
+					code_nm
+					from wz_comm_code_list
+					where code_se = 'PDG'
+					and code = watercycleWinterCode
+					and use_yn = 'Y'
+				) else null end as winter,
+
+-- 			case when fn_get_code_nm('PDG', watercycleSprngCode) is not null then fn_get_code_nm('PDG', watercycleSprngCode) else null end as spring,
+-- 			case when fn_get_code_nm('PDG', watercycleSummerCode) is not null then fn_get_code_nm('PDG', watercycleSummerCode) else null end as summer,
+-- 			case when fn_get_code_nm('PDG', watercycleAutumnCode) is not null then fn_get_code_nm('PDG', watercycleAutumnCode) else null end as autumn,
+-- 			case when fn_get_code_nm('PDG', watercycleWinterCode) is not null then fn_get_code_nm('PDG', watercycleWinterCode) else null end as winter,
+			managedemanddoCode,clCodeNM,grwhstleCodeNm,
+			postngplaceCode,dlthtsCodeNm,Formaldehyde_Removal,toluene_removal,Xylene_Removal,
+			Carbon_monoxide_removal,CO2_reduction,Negative_ion_generation,Relative_Humidity_Increase,
+			Limonin_content,Recommended_place,price_pot_b,price_pot_m,price_pot_s,price_flowerpot_b,
+			price_flowerpot_m,price_flowerpot_s,coord_x,coord_y,price,color,brightness,temperature,particulateRemovalPlant,gasRemovalPlant
+		FROM WZ_BOTANY_LIST
+		WHERE ID = #{id}
+	</select>
+	
+	<!-- 유사식물 -->
+	<select id="selectSimilarPlant" parameterType="Integer" resultType="camelMap">
+		select 
+			* 
+			from 
+			(
+				select 
+					a.*,
+					case when a.id = b.id then 0 
+					else
+-- 						sqrt(pow((coord_x - target_x),2)+pow((coord_y - target_y),2))+1
+						sqrt(((coord_x - target_x)*(coord_x - target_x)+(coord_y - target_y)*(coord_y - target_y))) + 1
+					end distance
+				from wz_botany_list a
+				left outer join 
+				(
+					select 
+						id,
+						coord_x as target_x,
+						coord_y as target_y
+					from wz_botany_list
+					where id = #{id}
+				) b
+				on 1=1
+			) res
+			order by distance
+			limit 8
+	</select>
+	
+</mapper>
