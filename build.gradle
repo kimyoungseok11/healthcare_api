@@ -42,6 +42,10 @@ dependencies {
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 }
 
+bootWar {
+	archiveFileName = 'healthcare.war'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
