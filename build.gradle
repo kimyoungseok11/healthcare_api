@@ -12,14 +12,7 @@ description = 'Demo project for Spring Boot (JDK8)'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(8)
-		vendor = JvmVendorSpec.ADOPTIUM // ← 자동 다운로드용
 	}
-}
-
-tasks.withType(JavaCompile) {
-	sourceCompatibility = '1.8'
-	targetCompatibility = '1.8'
-	options.encoding = 'UTF-8'
 }
 
 repositories {
@@ -27,6 +20,7 @@ repositories {
 }
 
 dependencies {
+	//implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// MyBatis (JDK8 호환 마지막 버전)
