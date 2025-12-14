@@ -42,7 +42,11 @@ dependencies {
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 }
 
-bootWar {
+//bootWar {
+//	archiveFileName = 'healthcare.war'
+//}
+
+war {
 	archiveFileName = 'healthcare.war'
 }
 
